@@ -227,9 +227,12 @@ android {
 }
 
 tasks.withType<Test> {
-    jacoco.includeNoLocationClasses = true
-    jacoco.excludes = listOf("jdk.internal.*")
+    extensions.configure(JacocoTaskExtension::class) {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
 }
+
 
 // ✅ 新增 jacocoTestReport 任务
 tasks.register<JacocoReport>("jacocoTestReport") {
