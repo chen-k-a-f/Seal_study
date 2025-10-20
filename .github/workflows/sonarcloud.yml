@@ -35,6 +35,8 @@ jobs:
 
     - name: Build, test, and generate coverage (skip ktfmt)
       run: ./gradlew clean build test jacocoTestReport -x ktfmtCheckMain --no-daemon --stacktrace
+      env:
+        GRADLE_OPTS: "-Xmx6g"
 
     - name: Upload JaCoCo coverage report (optional)
       uses: actions/upload-artifact@v4
