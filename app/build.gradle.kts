@@ -3,6 +3,7 @@
 import com.android.build.api.variant.FilterConfiguration
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     alias(libs.plugins.android.application)
@@ -235,7 +236,7 @@ tasks.withType<Test> {
 
 
 tasks.register<JacocoReport>("jacocoTestReport") {
-    // ✅ 自动检测是否有 testDebugUnitTest 任务存在
+    // ✅ 自动检测存在的测试任务
     val testTask = tasks.findByName("testDebugUnitTest") ?: tasks.findByName("test")
     if (testTask != null) {
         dependsOn(testTask)
@@ -245,23 +246,30 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 
     reports {
         xml.required.set(true)
-        html.required.set(false)
+        html.required.set(true)
     }
 
+    // ✅ Kotlin DSL 正确写法：使用 “setFrom” 而不是直接属性访问
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
     classDirectories.setFrom(
         fileTree("$buildDir/intermediates/javac/debug/classes") {
-            exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*")
+            exclude(
+                "**/R.class",
+                "**/R$*.class",
+                "**/BuildConfig.*",
+                "**/Manifest*.*"
+            )
         }
     )
-    executionData.setFrom(fileTree(buildDir) {
-        include(
-            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
-            "jacoco/test.exec"
-        )
-    })
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include(
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+                "jacoco/test.exec"
+            )
+        }
+    )
 }
-
 
     reports {
         xml.required.set(true)
