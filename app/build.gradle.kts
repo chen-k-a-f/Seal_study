@@ -234,9 +234,34 @@ tasks.withType<Test> {
 }
 
 
-// ✅ 新增 jacocoTestReport 任务
 tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest")
+    // ✅ 自动检测是否有 testDebugUnitTest 任务存在
+    val testTask = tasks.findByName("testDebugUnitTest") ?: tasks.findByName("test")
+    if (testTask != null) {
+        dependsOn(testTask)
+    } else {
+        println("⚠️ Warning: No test tasks found, skipping dependency for jacocoTestReport")
+    }
+
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
+
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(
+        fileTree("$buildDir/intermediates/javac/debug/classes") {
+            exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*")
+        }
+    )
+    executionData.setFrom(fileTree(buildDir) {
+        include(
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+            "jacoco/test.exec"
+        )
+    })
+}
+
 
     reports {
         xml.required.set(true)
