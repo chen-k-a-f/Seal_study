@@ -4,6 +4,7 @@ import com.android.build.api.variant.FilterConfiguration
 import java.io.FileInputStream
 import java.util.Properties
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 
 plugins {
     alias(libs.plugins.android.application)
@@ -195,53 +196,27 @@ dependencies {
 }
 
 
+// Jacoco 基本配置
 jacoco {
     toolVersion = "0.8.11"
 }
 
-android {
-    namespace = "com.junkfood.seal"
-    compileSdk = 34
-
-    defaultConfig {
-        applicationId = "com.junkfood.seal"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        getByName("debug") {
-            isTestCoverageEnabled = true // ✅ 开启单元测试覆盖率
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-}
-
-tasks.withType<Test> {
-    extensions.configure(JacocoTaskExtension::class) {
+// 为所有测试任务启用 Jacoco 扩展配置
+tasks.withType<Test>().configureEach {
+    extensions.configure(JacocoPluginExtension::class) {
         isIncludeNoLocationClasses = true
         excludes = listOf("jdk.internal.*")
     }
 }
 
-
-tasks.register<JacocoReport>("jacocoTestReport") {
-    // ✅ 自动检测存在的测试任务
+// ✅ Kotlin DSL 正确 Jacoco 报告任务定义
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    // 如果有 testDebugUnitTest 就依赖它，否则跳过
     val testTask = tasks.findByName("testDebugUnitTest") ?: tasks.findByName("test")
     if (testTask != null) {
         dependsOn(testTask)
     } else {
-        println("⚠️ Warning: No test tasks found, skipping dependency for jacocoTestReport")
+        println("⚠️ No test tasks found, continuing without dependsOn")
     }
 
     reports {
@@ -249,8 +224,9 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         html.required.set(true)
     }
 
-    // ✅ Kotlin DSL 正确写法：使用 “setFrom” 而不是直接属性访问
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    val javaSrc = files("src/main/java", "src/main/kotlin")
+
+    sourceDirectories.setFrom(javaSrc)
     classDirectories.setFrom(
         fileTree("$buildDir/intermediates/javac/debug/classes") {
             exclude(
@@ -269,20 +245,4 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             )
         }
     )
-}
-
-    reports {
-        xml.required.set(true)
-        html.required.set(false)
-    }
-
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    classDirectories.setFrom(
-        fileTree("$buildDir/intermediates/javac/debug/classes") {
-            exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*")
-        }
-    )
-    executionData.setFrom(fileTree(buildDir) {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-    })
 }
