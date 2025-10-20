@@ -204,10 +204,11 @@ jacoco {
 // 为所有测试任务启用 Jacoco 扩展配置
 tasks.withType<Test>().configureEach {
     extensions.configure(JacocoTaskExtension::class) {
-        isIncludeNoLocationClasses = true        // ✅ 带 is 前缀
-        excludes.add("jdk.internal.*")           // ✅ 使用 add()，而不是直接赋值
+        isIncludeNoLocationClasses = true
+        excludes?.add("jdk.internal.*")      // ✅ 使用 ?. 安全调用
     }
 }
+
 
 // ✅ Kotlin DSL 正确 Jacoco 报告任务定义
 tasks.register("jacocoTestReport", JacocoReport::class) {
