@@ -191,3 +191,66 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     implementation(libs.androidx.compose.ui.tooling)
 }
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("jacoco") // ✅ 新增这一行
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+android {
+    namespace = "com.junkfood.seal"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.junkfood.seal"
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        getByName("debug") {
+            isTestCoverageEnabled = true // ✅ 开启单元测试覆盖率
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+tasks.withType<Test> {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = listOf("jdk.internal.*")
+}
+
+// ✅ 新增 jacocoTestReport 任务
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
+
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(
+        fileTree("$buildDir/intermediates/javac/debug/classes") {
+            exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*")
+        }
+    )
+    executionData.setFrom(fileTree(buildDir) {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    })
+}
