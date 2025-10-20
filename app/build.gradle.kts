@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.room)
     alias(libs.plugins.ktfmt.gradle)
-    alias(libs.plugins.jacoco)
+    id("jacoco")
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
