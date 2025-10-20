@@ -203,9 +203,9 @@ jacoco {
 
 // 为所有测试任务启用 Jacoco 扩展配置
 tasks.withType<Test>().configureEach {
-    extensions.configure(JacocoPluginExtension::class) {
-        isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
+    extensions.configure(JacocoTaskExtension::class) {
+        isIncludeNoLocationClasses = true        // ✅ 带 is 前缀
+        excludes.add("jdk.internal.*")           // ✅ 使用 add()，而不是直接赋值
     }
 }
 
