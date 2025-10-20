@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.room)
     alias(libs.plugins.ktfmt.gradle)
+    alias(libs.plugins.jacoco)
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
@@ -192,11 +193,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling)
 }
 
-plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("jacoco") // ✅ 新增这一行
-}
 
 jacoco {
     toolVersion = "0.8.11"
