@@ -55,6 +55,11 @@ jobs:
       with:
         args: >
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.projectKey=chen-k-a-f_Seal_study
+          -Dsonar.organization=your-org
+          -Dsonar.sources=app/src/main/java,app/src/main/kotlin
+          # sonar.tests 只配置存在的目录，如果没有测试可以不加
+          -Dsonar.java.binaries=app/build/classes/java/main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
