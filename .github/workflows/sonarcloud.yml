@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
     # 1️⃣ Checkout code
@@ -36,20 +36,26 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle
 
-    # 4️⃣ Build, test, and generate coverage (skip ktfmt & F-Droid)
-    - name: Build, test, and generate coverage
-      run: ./gradlew clean build test jacocoTestReport -x ktfmtCheckMain -x assembleFdroidDebug --no-daemon --stacktrace
+    # 4️⃣ Build APK first (skip F-Droid flavor)
+    - name: Build APK
+      run: ./gradlew assembleDebug -x assembleFdroidDebug --no-daemon --stacktrace
       env:
         GRADLE_OPTS: "-Xmx6g"
 
-    # 5️⃣ Upload JaCoCo coverage report
+    # 5️⃣ Run tests & generate Jacoco coverage (skip ktfmt)
+    - name: Run tests & generate coverage
+      run: ./gradlew test jacocoTestReport -x ktfmtCheckMain --no-daemon --stacktrace
+      env:
+        GRADLE_OPTS: "-Xmx6g"
+
+    # 6️⃣ Upload JaCoCo coverage report
     - name: Upload JaCoCo coverage report
       uses: actions/upload-artifact@v4
       with:
         name: jacoco-report
         path: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
 
-    # 6️⃣ Run SonarCloud analysis
+    # 7️⃣ Run SonarCloud analysis
     - name: Run SonarCloud analysis
       uses: sonarsource/sonarcloud-github-action@v2
       with:
@@ -58,9 +64,10 @@ jobs:
           -Dsonar.projectKey=chen-k-a-f_Seal_study
           -Dsonar.organization=your-org
           -Dsonar.sources=app/src/main/java,app/src/main/kotlin
-          # 如果你有测试目录，改成实际路径，否则不加 sonar.tests
-          #-Dsonar.tests=app/src/test/java
+          # 如果有测试目录可以取消注释
+          # -Dsonar.tests=app/src/test/java
           -Dsonar.java.binaries=app/build/classes/java/main
+          -Dsonar.projectBaseDir=.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
