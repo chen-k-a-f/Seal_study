@@ -33,7 +33,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle
 
-    - name: Build, test, and generate coverage (skip ktfmt)
+    - name: Build, test, and generate coverage (skip ktfmt & F-Droid)
       run: ./gradlew clean build test jacocoTestReport -x ktfmtCheckMain --no-daemon --stacktrace
       env:
         GRADLE_OPTS: "-Xmx6g"
